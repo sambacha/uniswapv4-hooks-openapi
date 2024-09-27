@@ -1,0 +1,4161 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Token Trading",
+    "description": "Uniswap trading APIs for fungible tokens.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://beta.trade-api.gateway.uniswap.org/v1",
+      "description": "Uniswap trading APIs Beta"
+    },
+    {
+      "url": "https://trade-api.gateway.uniswap.org/v1",
+      "description": "Uniswap trading APIs"
+    }
+  ],
+  "security": [
+    {
+      "apiKey": []
+    }
+  ],
+  "paths": {
+    "/check_approval": {
+      "post": {
+        "tags": [
+          "Approval"
+        ],
+        "summary": "Check if token approval is required",
+        "description": "Checks if the swapper has the required approval. If the swapper does not have the required approval, then the response will include the transaction to approve the token. If the swapper has the required approval, then the response will be empty. If the parameter `includeGasInfo` is set to `true`, then the response will include the gas fee for the approval transaction.",
+        "operationId": "check_approval",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Check approval successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. Token allowance not found or Gas info not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/quote": {
+      "post": {
+        "tags": [
+          "Quote"
+        ],
+        "summary": "Get a quote",
+        "description": "Get a quote according to the provided configuration. Optionally adds a fee to the quote according to the API key being used. The fee is **ALWAYS** taken from the output token. If there is a fee and the trade is `EXACT_INPUT`, then the output amount will **NOT** include the fee subtraction. For `EXACT_INPUT` swaps, use `portionBips` to calculate the fee from the quoted amount. If there is a fee and the trade is `EXACT_OUTPUT`, then the input amount will **NOT** include the fee addition to account for the fee. For `EXACT_OUTPUT` swaps, use `portionAmount` to get the fee. \n \n We also support Wrapping and Unwrapping of native tokens on their respective chains. Wrapping and Unwrapping only works for when `routingPreference` is `CLASSIC`, `BEST_PRICE`, or `BEST_PRICE_V2`. We do not support `UNISWAPX` or `UNISWAPX_V2` for these actions.",
+        "operationId": "aggregator_quote",
+        "parameters": [
+          {
+            "name": "x-universal-router-version",
+            "in": "header",
+            "description": "The version of the Universal Router to use for the swap journey. *MUST* be consistent throughout the API calls.",
+            "required": false,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "$ref": "#/components/schemas/UniversalRouterVersion"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quote request successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. No quotes available or Gas fee/price not available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/order": {
+      "post": {
+        "tags": [
+          "Order"
+        ],
+        "summary": "Create a gasless order",
+        "description": "Submits a new gasless encoded order. The order will be validated and if valid, will be submitted to the filler network. The network will try to fill the order at the quoted `startAmount`, and if not, the amount will start decaying until the `endAmount` is reached. While the order is within `decayEndTime`, the `orderStatus` is `open`. If the order does not get filled after the `decayEndTime` has passed, that is reflected in the `expired` `orderStatus`. then  The order will be filled at the best price possible. Once the order is filled, `orderStatus` becomes `filled`.",
+        "operationId": "post_dutch_order",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Encoded order submitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/orders": {
+      "get": {
+        "tags": [
+          "Order"
+        ],
+        "summary": "Get gasless orders",
+        "description": "Retrieve gasless orders filtered by query param(s). Some fields on the order can be used as query param.",
+        "operationId": "get_dutch_order",
+        "parameters": [
+          {
+            "name": "orderType",
+            "in": "query",
+            "description": "The default orderType is Dutch_V1_V2 and will grab both Dutch and Dutch_V2 orders.",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/OrderTypeQuery"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/OrderId"
+            }
+          },
+          {
+            "name": "orderIds",
+            "in": "query",
+            "description": "ids split by commas",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/OrderIds"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orderStatus",
+            "in": "query",
+            "description": "Filter by order status.",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/OrderStatus"
+            }
+          },
+          {
+            "name": "swapper",
+            "in": "query",
+            "description": "Filter by swapper address.",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/Address"
+            }
+          },
+          {
+            "name": "sortKey",
+            "in": "query",
+            "description": "Order the query results by the sort key.",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/SortKey"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort query. For example: `sort=gt(UNIX_TIMESTAMP)`, `sort=between(1675872827, 1675872930)`, or `lt(1675872930)`.",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filler",
+            "in": "query",
+            "description": "Filter by filler address.",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/Address"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request orders matching the query parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOrdersResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError eg. Token allowance not valid or Insufficient Funds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Orders not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/swap": {
+      "post": {
+        "tags": [
+          "Swap"
+        ],
+        "summary": "Create swap calldata",
+        "description": "Create the calldata for a swap transaction (including wrap/unwrap) against the Uniswap Protocols. If the `quote` parameter includes the fee parameters, then the calldata will include the fee disbursement. The gas estimates will be **more precise** when the the response calldata would be valid if submitted on-chain.",
+        "operationId": "create_swap_transaction",
+        "parameters": [
+          {
+            "name": "x-universal-router-version",
+            "in": "header",
+            "description": "The version of the Universal Router to use for the swap journey. *MUST* be consistent throughout the API calls.",
+            "required": false,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "$ref": "#/components/schemas/UniversalRouterVersion"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSwapRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Create swap successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSwapResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked or  Fee is not enabled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. No quotes available or Gas fee/price not available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/swaps": {
+      "get": {
+        "tags": [
+          "Swap"
+        ],
+        "summary": "Get swaps status",
+        "description": "Get the status of a swap or bridge transactions.",
+        "operationId": "get_swaps",
+        "parameters": [
+          {
+            "name": "txHash",
+            "in": "query",
+            "description": "The transaction hash.",
+            "required": true,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/TransactionHash"
+            }
+          },
+          {
+            "name": "chainId",
+            "in": "query",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/ChainId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get swap successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSwapsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. No quotes available or Gas fee/price not available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/indicative_quote": {
+      "post": {
+        "tags": [
+          "IndicativeQuote"
+        ],
+        "summary": "Get an indicative quote",
+        "description": "Get an indicative quote according to the provided configuration. The quote will not include a fee.",
+        "operationId": "indicative_quote",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IndicativeQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Indicative quote request successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndicativeQuoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. No quotes available or Gas fee/price not available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/send": {
+      "post": {
+        "tags": [
+          "Send"
+        ],
+        "summary": "Create send calldata",
+        "description": "Create the calldata for a send transaction.",
+        "operationId": "create_send",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSendRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Create send successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSendResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. Gas fee not available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/swappable_tokens": {
+      "get": {
+        "tags": [
+          "SwappableTokens"
+        ],
+        "summary": "Get swappable tokens",
+        "description": "Get the swappable tokens for the given configuration. Either tokenIn (with tokenInChainId or (tokenInChainId and tokenOutChainId)) or tokenOut (with tokenOutChainId or (tokenOutChainId and tokenInChainId)) must be provided but not both.",
+        "operationId": "get_swappable_tokens",
+        "parameters": [
+          {
+            "name": "tokenIn",
+            "in": "query",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/Address"
+            }
+          },
+          {
+            "name": "tokenOut",
+            "in": "query",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/Address"
+            }
+          },
+          {
+            "name": "tokenInChainId",
+            "in": "query",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/ChainId"
+            }
+          },
+          {
+            "name": "tokenOutChainId",
+            "in": "query",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "$ref": "#/components/schemas/ChainId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get swappable tokens successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSwappableTokensResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. No quotes available or Gas fee/price not available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/limit_order_quote": {
+      "post": {
+        "tags": [
+          "LimitOrderQuote"
+        ],
+        "summary": "Get a limit order quote",
+        "description": "Get a quote for a limit order according to the provided configuration.",
+        "operationId": "get_limit_order_quote",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LimitOrderQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Limit Order Quote request successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitOrderQuoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. No quotes available or Gas fee/price not available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check_approval_lp": {
+      "post": {
+        "tags": [
+          "Liquidity"
+        ],
+        "summary": "Check if tokens and permits need to be approved to add liquidity",
+        "description": "Checks if the wallet address has the required approvals. If the wallet address does not have the required approval, then the response will include the transactions to approve the tokens. If the wallet address has the required approval, then the response will be empty for the corresponding tokens. If the parameter `includeGasInfo` is set to `true`, then the response will include the gas fees for the approval transactions.",
+        "operationId": "check_approval_lp",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckApprovalLPRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Approve LP successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckApprovalLPResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. Token allowance not found or Gas info not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/create_lp_position": {
+      "post": {
+        "tags": [
+          "Liquidity"
+        ],
+        "summary": "Create pool and position calldata",
+        "description": "Create pool and position calldata. If the pool is not yet created, then the response will include the transaction to create the new pool with the initial price. If the pool is already created, then the response will not have the transaction to create the pool. The response will also have the transaction to create the position for the corresponding pool. If the parameter `includeGasInfo` is set to `true`, then the response will include the gas fees for the creation transactions.",
+        "operationId": "create_lp_position",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLPPositionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Create LP Position successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateLPPositionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. Cant Find LP Position.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/increase_lp_position": {
+      "post": {
+        "tags": [
+          "Liquidity"
+        ],
+        "summary": "Increase LP position calldata",
+        "description": "The response will also have the transaction to increase the position for the corresponding pool. If the parameter `includeGasInfo` is set to `true`, then the response will include the gas fees for the increase transaction.",
+        "operationId": "increase_lp_position",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IncreaseLPPositionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Create LP Position successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncreaseLPPositionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. Cant Find LP Position.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/reduce_lp_position": {
+      "post": {
+        "tags": [
+          "Liquidity"
+        ],
+        "summary": "Reduce LP position calldata",
+        "description": "The response will also have the transaction to reduce the position for the corresponding pool. If the parameter `includeGasInfo` is set to `true`, then the response will include the gas fees for the reduce transaction.",
+        "operationId": "reduce_lp_position",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReduceLPPositionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reduce LP Position successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReduceLPPositionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. Cant Find LP Position.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/claim_lp_fees": {
+      "post": {
+        "tags": [
+          "Liquidity"
+        ],
+        "summary": "Claim LP fees calldata",
+        "description": "The response will also have the transaction to claim the fees for an LP position for the corresponding pool. If the parameter `includeGasInfo` is set to `true`, then the response will include the gas fees for the claim transaction.",
+        "operationId": "claim_lp_fees",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimLPFeesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Claim LP Fees successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimLPFeesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "RequestValidationError, Bad Input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err400"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UnauthorizedError eg. Account is blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err401"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ResourceNotFound eg. Cant Find LP Position.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err404"
+                }
+              }
+            }
+          },
+          "419": {
+            "description": "Ratelimited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err429"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err500"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request duration limit reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Err504"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NullablePermit": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Permit"
+          },
+          {
+            "type": "object",
+            "nullable": true
+          }
+        ]
+      },
+      "TokenAmount": {
+        "type": "string"
+      },
+      "SwapStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "SUCCESS",
+          "NOT_FOUND",
+          "FAILED",
+          "EXPIRED"
+        ]
+      },
+      "FeeType": {
+        "type": "string",
+        "enum": [
+          "legacy",
+          "eip1559"
+        ]
+      },
+      "GasEstimateLegacy": {
+        "required": [
+          "gasFee",
+          "gasLimit",
+          "gasPrice",
+          "strategy",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "gasPrice": {
+            "type": "string"
+          },
+          "gasLimit": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FeeType"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/GasStrategy"
+          },
+          "gasFee": {
+            "type": "string"
+          }
+        }
+      },
+      "GasEstimateEip1559": {
+        "required": [
+          "gasFee",
+          "gasLimit",
+          "maxFeePerGas",
+          "maxPriorityFeePerGas",
+          "strategy",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "maxFeePerGas": {
+            "type": "string"
+          },
+          "maxPriorityFeePerGas": {
+            "type": "string"
+          },
+          "gasLimit": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FeeType"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/GasStrategy"
+          },
+          "gasFee": {
+            "type": "string"
+          }
+        }
+      },
+      "GasEstimate": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/GasEstimateLegacy"
+          },
+          {
+            "$ref": "#/components/schemas/GasEstimateEip1559"
+          }
+        ]
+      },
+      "GasStrategy": {
+        "required": [
+          "limitInflationFactor",
+          "percentileThresholdFor1559Fee",
+          "priceInflationFactor"
+        ],
+        "type": "object",
+        "properties": {
+          "limitInflationFactor": {
+            "type": "number"
+          },
+          "priceInflationFactor": {
+            "type": "number"
+          },
+          "percentileThresholdFor1559Fee": {
+            "type": "number"
+          },
+          "minPriorityFeeGwei": {
+            "type": "number",
+            "nullable": true
+          },
+          "maxPriorityFeeGwei": {
+            "type": "number",
+            "nullable": true
+          }
+        }
+      },
+      "GetSwapsResponse": {
+        "required": [
+          "requestId",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "swaps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetSwapsResponse_swaps"
+            }
+          }
+        }
+      },
+      "GetSwappableTokensResponse": {
+        "required": [
+          "requestId",
+          "tokens"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "tokens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetSwappableTokensResponse_tokens"
+            }
+          }
+        }
+      },
+      "CreateSwapRequest": {
+        "required": [
+          "quote"
+        ],
+        "type": "object",
+        "properties": {
+          "quote": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ClassicQuote"
+              },
+              {
+                "$ref": "#/components/schemas/WrapUnwrapQuote"
+              },
+              {
+                "$ref": "#/components/schemas/BridgeQuote"
+              }
+            ]
+          },
+          "signature": {
+            "type": "string",
+            "description": "The signed permit."
+          },
+          "includeGasInfo": {
+            "type": "boolean",
+            "description": "Use `refreshGasPrice` instead.",
+            "deprecated": true,
+            "default": false
+          },
+          "refreshGasPrice": {
+            "type": "boolean",
+            "description": "If true, the gas price will be re-fetched from the network.",
+            "default": false
+          },
+          "simulateTransaction": {
+            "type": "boolean",
+            "description": "If true, the transaction will be simulated. If the simulation results on an onchain error, endpoint will return an error.",
+            "default": false
+          },
+          "permitData": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Permit"
+              }
+            ]
+          },
+          "safetyMode": {
+            "$ref": "#/components/schemas/SwapSafetyMode"
+          },
+          "deadline": {
+            "type": "integer",
+            "description": "The deadline for the swap in unix timestamp format. If the deadline is not defined OR in the past then the default deadline is 30 minutes."
+          },
+          "urgency": {
+            "$ref": "#/components/schemas/Urgency"
+          },
+          "gasStrategies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GasStrategy"
+            }
+          }
+        },
+        "description": "The parameters **signature** and **permitData** should only be included if *permitData* was returned from **/quote**."
+      },
+      "CreateSendRequest": {
+        "required": [
+          "amount",
+          "recipient",
+          "sender",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "sender": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "token": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/TokenAmount"
+          },
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "urgency": {
+            "$ref": "#/components/schemas/Urgency"
+          },
+          "gasStrategies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GasStrategy"
+            }
+          }
+        }
+      },
+      "UniversalRouterVersion": {
+        "type": "string",
+        "default": "1.2",
+        "enum": [
+          "1.2",
+          "2.0"
+        ]
+      },
+      "Address": {
+        "pattern": "^(0x)?[0-9a-fA-F]{40}$",
+        "type": "string"
+      },
+      "PositionConfig": {
+        "required": [
+          "poolKey",
+          "tickLower",
+          "tickUpper"
+        ],
+        "type": "object",
+        "properties": {
+          "poolKey": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "tickLower": {
+            "type": "number"
+          },
+          "tickUpper": {
+            "type": "number"
+          }
+        }
+      },
+      "PoolKey": {
+        "required": [
+          "fee",
+          "tickSpacing",
+          "token0",
+          "token1"
+        ],
+        "type": "object",
+        "properties": {
+          "token0": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "token1": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "fee": {
+            "type": "number"
+          },
+          "tickSpacing": {
+            "type": "number"
+          },
+          "hooks": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "ClassicGasUseEstimateUSD": {
+        "type": "string",
+        "description": "The gas fee you would pay if you opted for a CLASSIC swap over a Uniswap X order in terms of USD."
+      },
+      "CreateSwapResponse": {
+        "required": [
+          "requestId",
+          "swap"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "swap": {
+            "$ref": "#/components/schemas/TransactionRequest"
+          },
+          "gasFee": {
+            "type": "string"
+          },
+          "gasEstimates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GasEstimate"
+            }
+          }
+        }
+      },
+      "CreateSendResponse": {
+        "required": [
+          "requestId",
+          "send"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "send": {
+            "$ref": "#/components/schemas/TransactionRequest"
+          },
+          "gasFee": {
+            "type": "string"
+          },
+          "gasFeeUSD": {
+            "type": "number"
+          },
+          "gasEstimates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GasEstimate"
+            }
+          }
+        }
+      },
+      "QuoteResponse": {
+        "required": [
+          "permitData",
+          "quote",
+          "requestId",
+          "routing"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/Quote"
+          },
+          "routing": {
+            "$ref": "#/components/schemas/Routing"
+          },
+          "permitData": {
+            "$ref": "#/components/schemas/NullablePermit"
+          }
+        }
+      },
+      "LimitOrderQuoteResponse": {
+        "required": [
+          "permitData",
+          "quote",
+          "requestId",
+          "routing"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/DutchQuote"
+          },
+          "routing": {
+            "type": "string",
+            "enum": [
+              "LIMIT_ORDER"
+            ]
+          },
+          "permitData": {
+            "$ref": "#/components/schemas/NullablePermit"
+          }
+        }
+      },
+      "QuoteRequest": {
+        "required": [
+          "amount",
+          "swapper",
+          "tokenIn",
+          "tokenInChainId",
+          "tokenOut",
+          "tokenOutChainId",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/TradeType"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "tokenInChainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "tokenOutChainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "tokenIn": {
+            "type": "string"
+          },
+          "tokenOut": {
+            "type": "string"
+          },
+          "swapper": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "slippageTolerance": {
+            "type": "number",
+            "description": "For **Classic** swaps, the slippage tolerance is the maximum amount the price can change between the time the transaction is submitted and the time it is executed. The slippage tolerance is represented as a percentage of the total value of the swap. \n\n Slippage tolerance works differently in **DutchLimit** swaps, it does not set a limit on the Spread in an order. See [here](https://uniswap-docs.readme.io/reference/faqs#why-do-the-uniswapx-quotes-have-more-slippage-than-the-tolerance-i-set) for more information. \n\n **NOTE**: slippage is in terms of trade type. If the trade type is `EXACT_INPUT`, then the slippage is in terms of the output token. If the trade type is `EXACT_OUTPUT`, then the slippage is in terms of the input token."
+          },
+          "autoSlippage": {
+            "$ref": "#/components/schemas/AutoSlippage"
+          },
+          "routingPreference": {
+            "$ref": "#/components/schemas/RoutingPreference"
+          },
+          "protocols": {
+            "$ref": "#/components/schemas/Protocols"
+          },
+          "spreadOptimization": {
+            "$ref": "#/components/schemas/SpreadOptimization"
+          },
+          "urgency": {
+            "$ref": "#/components/schemas/Urgency"
+          },
+          "gasStrategies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GasStrategy"
+            }
+          }
+        }
+      },
+      "LimitOrderQuoteRequest": {
+        "required": [
+          "amount",
+          "swapper",
+          "tokenIn",
+          "tokenInChainId",
+          "tokenOut",
+          "tokenOutChainId",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "swapper": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "limitPrice": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "orderDeadline": {
+            "type": "number"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TradeType"
+          },
+          "tokenIn": {
+            "type": "string"
+          },
+          "tokenOut": {
+            "type": "string"
+          },
+          "tokenInChainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "tokenOutChainId": {
+            "$ref": "#/components/schemas/ChainId"
+          }
+        }
+      },
+      "GetOrdersResponse": {
+        "required": [
+          "orders",
+          "requestId"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UniswapXOrder"
+            }
+          },
+          "cursor": {
+            "type": "string"
+          }
+        }
+      },
+      "OrderResponse": {
+        "required": [
+          "orderId",
+          "orderStatus",
+          "requestId"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "orderStatus": {
+            "$ref": "#/components/schemas/OrderStatus"
+          }
+        }
+      },
+      "OrderRequest": {
+        "required": [
+          "quote",
+          "signature"
+        ],
+        "type": "object",
+        "properties": {
+          "signature": {
+            "type": "string",
+            "description": "The signed permit."
+          },
+          "quote": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DutchQuote"
+              },
+              {
+                "$ref": "#/components/schemas/DutchQuoteV2"
+              }
+            ]
+          },
+          "routing": {
+            "$ref": "#/components/schemas/Routing"
+          }
+        }
+      },
+      "Urgency": {
+        "type": "string",
+        "description": "The urgency determines the urgency of the transaction. The default value is `urgent`.",
+        "default": "urgent",
+        "enum": [
+          "normal",
+          "fast",
+          "urgent"
+        ]
+      },
+      "Protocols": {
+        "type": "array",
+        "description": "The protocols to use for the swap/order. If the `protocols` field is defined, then you can only set the `routingPreference` to `BEST_PRICE`",
+        "items": {
+          "$ref": "#/components/schemas/ProtocolItems"
+        }
+      },
+      "Err400": {
+        "type": "object",
+        "properties": {
+          "errorCode": {
+            "type": "string",
+            "default": "RequestValidationError"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
+      "Err401": {
+        "type": "object",
+        "properties": {
+          "errorCode": {
+            "type": "string",
+            "default": "UnauthorizedError"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
+      "Err404": {
+        "type": "object",
+        "properties": {
+          "errorCode": {
+            "type": "string",
+            "default": "ResourceNotFound"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
+      "Err429": {
+        "type": "object",
+        "properties": {
+          "errorCode": {
+            "type": "string",
+            "default": "Ratelimited"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
+      "Err500": {
+        "type": "object",
+        "properties": {
+          "errorCode": {
+            "type": "string",
+            "default": "InternalServerError"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
+      "Err504": {
+        "type": "object",
+        "properties": {
+          "errorCode": {
+            "type": "string",
+            "default": "Timeout"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      },
+      "ChainId": {
+        "type": "number",
+        "enum": [
+          1,
+          10,
+          56,
+          137,
+          8453,
+          42161,
+          81457,
+          43114,
+          42220,
+          7777777,
+          324
+        ]
+      },
+      "OrderInput": {
+        "required": [
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "startAmount": {
+            "type": "string"
+          },
+          "endAmount": {
+            "type": "string"
+          }
+        }
+      },
+      "OrderOutput": {
+        "required": [
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "startAmount": {
+            "type": "string"
+          },
+          "endAmount": {
+            "type": "string"
+          },
+          "isFeeOutput": {
+            "type": "boolean"
+          },
+          "recipient": {
+            "type": "string"
+          }
+        }
+      },
+      "CosignerData": {
+        "type": "object",
+        "properties": {
+          "decayStartTime": {
+            "type": "number"
+          },
+          "decayEndTime": {
+            "type": "number"
+          },
+          "exclusiveFiller": {
+            "type": "string"
+          },
+          "inputOverride": {
+            "type": "string"
+          },
+          "outputOverrides": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SettledAmount": {
+        "type": "object",
+        "properties": {
+          "tokenOut": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "amountOut": {
+            "type": "string"
+          },
+          "tokenIn": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "amountIn": {
+            "type": "string"
+          }
+        }
+      },
+      "OrderType": {
+        "type": "string",
+        "enum": [
+          "DutchLimit",
+          "Dutch",
+          "Dutch_V2"
+        ]
+      },
+      "OrderTypeQuery": {
+        "type": "string",
+        "enum": [
+          "Dutch",
+          "Dutch_V2",
+          "Dutch_V1_V2",
+          "Limit"
+        ]
+      },
+      "UniswapXOrder": {
+        "required": [
+          "chainId",
+          "encodedOrder",
+          "nonce",
+          "orderId",
+          "orderStatus",
+          "signature",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/OrderType"
+          },
+          "encodedOrder": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "orderStatus": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "quoteId": {
+            "type": "string"
+          },
+          "swapper": {
+            "type": "string"
+          },
+          "txHash": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/OrderInput"
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderOutput"
+            }
+          },
+          "settledAmounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettledAmount"
+            }
+          },
+          "cosignature": {
+            "type": "string"
+          },
+          "cosignerData": {
+            "$ref": "#/components/schemas/CosignerData"
+          }
+        }
+      },
+      "SortKey": {
+        "type": "string",
+        "enum": [
+          "createdAt"
+        ]
+      },
+      "OrderId": {
+        "type": "string"
+      },
+      "OrderIds": {
+        "type": "string"
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "open",
+          "expired",
+          "error",
+          "cancelled",
+          "filled",
+          "unverified",
+          "insufficient-funds"
+        ]
+      },
+      "Permit": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "object"
+          },
+          "values": {
+            "type": "object"
+          },
+          "types": {
+            "type": "object"
+          }
+        }
+      },
+      "TokenProject": {
+        "required": [
+          "isSpam",
+          "logo",
+          "safetyLevel"
+        ],
+        "type": "object",
+        "properties": {
+          "logo": {
+            "$ref": "#/components/schemas/TokenProjectLogo"
+          },
+          "safetyLevel": {
+            "$ref": "#/components/schemas/SafetyLevel"
+          },
+          "isSpam": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TokenProjectLogo": {
+        "required": [
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "DutchInput": {
+        "required": [
+          "endAmount",
+          "startAmount",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "startAmount": {
+            "type": "string"
+          },
+          "endAmount": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "DutchOutput": {
+        "required": [
+          "endAmount",
+          "recipient",
+          "startAmount",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "startAmount": {
+            "type": "string"
+          },
+          "endAmount": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "recipient": {
+            "type": "string"
+          }
+        }
+      },
+      "DutchOrderInfo": {
+        "required": [
+          "chainId",
+          "deadline",
+          "endTime",
+          "exclusiveFiller",
+          "exclusivityOverrideBps",
+          "input",
+          "nonce",
+          "outputs",
+          "reactor",
+          "startTime",
+          "swapper",
+          "validationContract",
+          "validationData"
+        ],
+        "type": "object",
+        "properties": {
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "reactor": {
+            "type": "string"
+          },
+          "swapper": {
+            "type": "string"
+          },
+          "deadline": {
+            "type": "number"
+          },
+          "additionalValidationContract": {
+            "type": "string"
+          },
+          "additionalValidationData": {
+            "type": "string"
+          },
+          "decayStartTime": {
+            "type": "number"
+          },
+          "decayEndTime": {
+            "type": "number"
+          },
+          "exclusiveFiller": {
+            "type": "string"
+          },
+          "exclusivityOverrideBps": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/DutchInput"
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DutchOutput"
+            }
+          }
+        }
+      },
+      "DutchOrderInfoV2": {
+        "required": [
+          "chainId",
+          "deadline",
+          "endTime",
+          "exclusiveFiller",
+          "exclusivityOverrideBps",
+          "input",
+          "nonce",
+          "outputs",
+          "reactor",
+          "startTime",
+          "swapper",
+          "validationContract",
+          "validationData"
+        ],
+        "type": "object",
+        "properties": {
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "reactor": {
+            "type": "string"
+          },
+          "swapper": {
+            "type": "string"
+          },
+          "deadline": {
+            "type": "number"
+          },
+          "additionalValidationContract": {
+            "type": "string"
+          },
+          "additionalValidationData": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/DutchInput"
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DutchOutput"
+            }
+          },
+          "cosigner": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "DutchQuote": {
+        "required": [
+          "encodedOrder",
+          "orderId",
+          "orderInfo"
+        ],
+        "type": "object",
+        "properties": {
+          "encodedOrder": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "orderInfo": {
+            "$ref": "#/components/schemas/DutchOrderInfo"
+          },
+          "portionBips": {
+            "type": "number"
+          },
+          "portionAmount": {
+            "type": "string"
+          },
+          "portionRecipient": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "quoteId": {
+            "type": "string"
+          },
+          "slippageTolerance": {
+            "type": "number"
+          },
+          "classicGasUseEstimateUSD": {
+            "$ref": "#/components/schemas/ClassicGasUseEstimateUSD"
+          }
+        }
+      },
+      "DutchQuoteV2": {
+        "required": [
+          "encodedOrder",
+          "orderId",
+          "orderInfo"
+        ],
+        "type": "object",
+        "properties": {
+          "encodedOrder": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "orderInfo": {
+            "$ref": "#/components/schemas/DutchOrderInfoV2"
+          },
+          "portionBips": {
+            "type": "number"
+          },
+          "portionAmount": {
+            "type": "string"
+          },
+          "portionRecipient": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "quoteId": {
+            "type": "string"
+          },
+          "slippageTolerance": {
+            "type": "number"
+          },
+          "deadlineBufferSecs": {
+            "type": "number"
+          },
+          "classicGasUseEstimateUSD": {
+            "$ref": "#/components/schemas/ClassicGasUseEstimateUSD"
+          }
+        }
+      },
+      "BridgeQuote": {
+        "type": "object",
+        "properties": {
+          "quoteId": {
+            "type": "string"
+          },
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "destinationChainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "swapper": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "input": {
+            "$ref": "#/components/schemas/ClassicInput"
+          },
+          "output": {
+            "$ref": "#/components/schemas/ClassicOutput"
+          },
+          "tradeType": {
+            "$ref": "#/components/schemas/TradeType"
+          },
+          "quoteTimestamp": {
+            "type": "number"
+          },
+          "gasPrice": {
+            "type": "string"
+          },
+          "maxFeePerGas": {
+            "type": "string"
+          },
+          "maxPriorityFeePerGas": {
+            "type": "string"
+          },
+          "gasFee": {
+            "type": "string"
+          },
+          "gasUseEstimate": {
+            "type": "string"
+          },
+          "gasFeeUSD": {
+            "type": "string"
+          },
+          "portionBips": {
+            "type": "number"
+          },
+          "portionAmount": {
+            "type": "string"
+          },
+          "portionRecipient": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "SafetyLevel": {
+        "type": "string",
+        "enum": [
+          "BLOCKED",
+          "MEDIUM_WARNING",
+          "STRONG_WARNING",
+          "VERIFIED"
+        ]
+      },
+      "TradeType": {
+        "type": "string",
+        "enum": [
+          "EXACT_INPUT",
+          "EXACT_OUTPUT"
+        ]
+      },
+      "Routing": {
+        "type": "string",
+        "enum": [
+          "DUTCH_LIMIT",
+          "CLASSIC",
+          "DUTCH_V2",
+          "BRIDGE",
+          "LIMIT_ORDER"
+        ]
+      },
+      "Quote": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/DutchQuote"
+          },
+          {
+            "$ref": "#/components/schemas/ClassicQuote"
+          },
+          {
+            "$ref": "#/components/schemas/WrapUnwrapQuote"
+          },
+          {
+            "$ref": "#/components/schemas/DutchQuoteV2"
+          },
+          {
+            "$ref": "#/components/schemas/BridgeQuote"
+          }
+        ]
+      },
+      "CheckApprovalLPRequest": {
+        "type": "object",
+        "properties": {
+          "token0": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "token1": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "walletAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "amount0": {
+            "type": "string"
+          },
+          "amount1": {
+            "type": "string"
+          },
+          "includeGasInfo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CheckApprovalLPResponse": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "token0Approval": {
+            "$ref": "#/components/schemas/TransactionRequest"
+          },
+          "token1Approval": {
+            "$ref": "#/components/schemas/TransactionRequest"
+          },
+          "batchedPermit2Data": {
+            "$ref": "#/components/schemas/NullablePermit"
+          },
+          "gasFee0": {
+            "type": "string"
+          },
+          "gasFee1": {
+            "type": "string"
+          }
+        }
+      },
+      "ApprovalRequest": {
+        "required": [
+          "amount",
+          "token",
+          "walletAddress"
+        ],
+        "type": "object",
+        "properties": {
+          "walletAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "token": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/TokenAmount"
+          },
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "urgency": {
+            "$ref": "#/components/schemas/Urgency"
+          },
+          "gasStrategies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GasStrategy"
+            }
+          },
+          "includeGasInfo": {
+            "type": "boolean",
+            "default": false
+          },
+          "tokenOut": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "tokenOutChainId": {
+            "$ref": "#/components/schemas/ChainId"
+          }
+        }
+      },
+      "ApprovalResponse": {
+        "required": [
+          "approval",
+          "cancel",
+          "requestId"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "approval": {
+            "$ref": "#/components/schemas/TransactionRequest"
+          },
+          "cancel": {
+            "$ref": "#/components/schemas/TransactionRequest"
+          },
+          "gasFee": {
+            "type": "string"
+          },
+          "cancelGasFee": {
+            "type": "string"
+          },
+          "gasEstimates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GasEstimate"
+            }
+          }
+        }
+      },
+      "ClassicQuote": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "$ref": "#/components/schemas/ClassicInput"
+          },
+          "output": {
+            "$ref": "#/components/schemas/ClassicOutput"
+          },
+          "swapper": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "slippage": {
+            "type": "number"
+          },
+          "tradeType": {
+            "$ref": "#/components/schemas/TradeType"
+          },
+          "gasFee": {
+            "type": "string",
+            "description": "The gas fee in terms of wei. It does NOT include the additional gas for token approvals."
+          },
+          "gasFeeUSD": {
+            "type": "string",
+            "description": "The gas fee in terms of USD. It does NOT include the additional gas for token approvals."
+          },
+          "gasFeeQuote": {
+            "type": "string",
+            "description": "The gas fee in terms of the quoted currency. It does NOT include the additional gas for token approvals."
+          },
+          "gasEstimates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GasEstimate"
+            }
+          },
+          "route": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/V3PoolInRoute"
+                  },
+                  {
+                    "$ref": "#/components/schemas/V2PoolInRoute"
+                  }
+                ]
+              }
+            }
+          },
+          "portionBips": {
+            "type": "number",
+            "description": "The portion of the swap that will be taken as a fee. The fee will be taken from the output token."
+          },
+          "portionAmount": {
+            "type": "string",
+            "description": "The amount of the swap that will be taken as a fee. The fee will be taken from the output token."
+          },
+          "portionRecipient": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "routeString": {
+            "type": "string",
+            "description": "The route in string format."
+          },
+          "quoteId": {
+            "type": "string",
+            "description": "The quote id. Used for analytics purposes."
+          },
+          "gasUseEstimate": {
+            "type": "string",
+            "description": "The estimated gas use. It does NOT include the additional gas for token approvals."
+          },
+          "blockNumber": {
+            "type": "string",
+            "description": "The current block number."
+          },
+          "gasPrice": {
+            "type": "string",
+            "description": "The gas price in terms of wei for pre EIP1559 transactions."
+          },
+          "maxFeePerGas": {
+            "type": "string",
+            "description": "The maximum fee per gas in terms of wei for EIP1559 transactions."
+          },
+          "maxPriorityFeePerGas": {
+            "type": "string",
+            "description": "The maximum priority fee per gas in terms of wei for EIP1559 transactions."
+          },
+          "txFailureReasons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionFailureReason"
+            }
+          },
+          "priceImpact": {
+            "type": "number",
+            "description": "The impact the trade has on the market price of the pool, between 0-100 percent"
+          }
+        }
+      },
+      "WrapUnwrapQuote": {
+        "type": "object",
+        "properties": {
+          "swapper": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "input": {
+            "$ref": "#/components/schemas/ClassicInput"
+          },
+          "output": {
+            "$ref": "#/components/schemas/ClassicOutput"
+          },
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "tradeType": {
+            "$ref": "#/components/schemas/TradeType"
+          },
+          "gasFee": {
+            "type": "string",
+            "description": "The gas fee in terms of wei."
+          },
+          "gasFeeUSD": {
+            "type": "string",
+            "description": "The gas fee in terms of USD."
+          },
+          "gasFeeQuote": {
+            "type": "string",
+            "description": "The gas fee in terms of the quoted currency."
+          },
+          "gasUseEstimate": {
+            "type": "string",
+            "description": "The estimated gas use."
+          },
+          "gasPrice": {
+            "type": "string",
+            "description": "The gas price in terms of wei for pre EIP1559 transactions."
+          },
+          "maxFeePerGas": {
+            "type": "string",
+            "description": "The maximum fee per gas in terms of wei for EIP1559 transactions."
+          },
+          "maxPriorityFeePerGas": {
+            "type": "string",
+            "description": "The maximum priority fee per gas in terms of wei for EIP1559 transactions."
+          }
+        }
+      },
+      "TokenInRoute": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "decimals": {
+            "type": "string"
+          },
+          "buyFeeBps": {
+            "type": "string"
+          },
+          "sellFeeBps": {
+            "type": "string"
+          }
+        }
+      },
+      "V2Reserve": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "$ref": "#/components/schemas/TokenInRoute"
+          },
+          "quotient": {
+            "type": "string"
+          }
+        }
+      },
+      "V2PoolInRoute": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "v2-pool"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "tokenIn": {
+            "$ref": "#/components/schemas/TokenInRoute"
+          },
+          "tokenOut": {
+            "$ref": "#/components/schemas/TokenInRoute"
+          },
+          "reserve0": {
+            "$ref": "#/components/schemas/V2Reserve"
+          },
+          "reserve1": {
+            "$ref": "#/components/schemas/V2Reserve"
+          },
+          "amountIn": {
+            "type": "string"
+          },
+          "amountOut": {
+            "type": "string"
+          }
+        }
+      },
+      "V3PoolInRoute": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "v3-pool"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "tokenIn": {
+            "$ref": "#/components/schemas/TokenInRoute"
+          },
+          "tokenOut": {
+            "$ref": "#/components/schemas/TokenInRoute"
+          },
+          "sqrtRatioX96": {
+            "type": "string"
+          },
+          "liquidity": {
+            "type": "string"
+          },
+          "tickCurrent": {
+            "type": "string"
+          },
+          "fee": {
+            "type": "string"
+          },
+          "amountIn": {
+            "type": "string"
+          },
+          "amountOut": {
+            "type": "string"
+          }
+        }
+      },
+      "TransactionHash": {
+        "pattern": "^(0x)?[0-9a-fA-F]{64}$",
+        "type": "string"
+      },
+      "ClassicInput": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "amount": {
+            "type": "string"
+          }
+        }
+      },
+      "ClassicOutput": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "RequestId": {
+        "type": "string"
+      },
+      "SpreadOptimization": {
+        "type": "string",
+        "description": "For **Dutch Limit** orders only. When set to `EXECUTION`, quotes optimize for looser spreads at higher fill rates. When set to `PRICE`, quotes optimize for tighter spreads at lower fill rates",
+        "default": "EXECUTION",
+        "enum": [
+          "EXECUTION",
+          "PRICE"
+        ]
+      },
+      "AutoSlippage": {
+        "type": "string",
+        "description": "For **Classic** swaps only. The auto slippage strategy to employ. If auto slippage is not defined then we don't compute it. If the auto slippage strategy is `DEFAULT`, then the swap will use the default slippage tolerance computation. You cannot define auto slippage and slippage tolerance at the same time. \n\n **NOTE**: slippage is in terms of trade type. If the trade type is `EXACT_INPUT`, then the slippage is in terms of the output token. If the trade type is `EXACT_OUTPUT`, then the slippage is in terms of the input token.",
+        "default": "undefined",
+        "enum": [
+          "DEFAULT"
+        ]
+      },
+      "RoutingPreference": {
+        "type": "string",
+        "description": "The routing preference determines which protocol to use for the swap. If the routing preference is `UNISWAPX`, then the swap will be routed through the UniswapX Dutch Auction Protocol. If the routing preference is `CLASSIC`, then the swap will be routed through the Classic Protocol. If the routing preference is `BEST_PRICE`, then the swap will be routed through the protocol that provides the best price. When `UNIXWAPX_V2` is passed, the swap will be routed through the UniswapX V2 Dutch Auction Protocol. When `V3_ONLY` is passed, the swap will be routed ONLY through the Uniswap V3 Protocol. When `V2_ONLY` is passed, the swap will be routed ONLY through the Uniswap V2 Protocol.",
+        "default": "BEST_PRICE",
+        "enum": [
+          "CLASSIC",
+          "UNISWAPX",
+          "BEST_PRICE",
+          "BEST_PRICE_V2",
+          "UNISWAPX_V2",
+          "V3_ONLY",
+          "V2_ONLY"
+        ]
+      },
+      "ProtocolItems": {
+        "type": "string",
+        "enum": [
+          "V2",
+          "V3",
+          "V4",
+          "UNISWAPX",
+          "UNISWAPX_V2"
+        ]
+      },
+      "TransactionRequest": {
+        "required": [
+          "chainId",
+          "data",
+          "from",
+          "to",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "to": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "from": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "data": {
+            "type": "string",
+            "description": "The calldata for the transaction."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the transaction in terms of wei in hex format."
+          },
+          "gasLimit": {
+            "type": "string"
+          },
+          "chainId": {
+            "type": "integer"
+          },
+          "maxFeePerGas": {
+            "type": "string"
+          },
+          "maxPriorityFeePerGas": {
+            "type": "string"
+          },
+          "gasPrice": {
+            "type": "string"
+          }
+        }
+      },
+      "TransactionFailureReason": {
+        "type": "string",
+        "enum": [
+          "SIMULATION_ERROR",
+          "UNSUPPORTED_SIMULATION"
+        ]
+      },
+      "SwapSafetyMode": {
+        "type": "string",
+        "description": "The safety mode determines the safety level of the swap. If the safety mode is `SAFE`, then the swap will include a SWEEP for the native token.",
+        "enum": [
+          "SAFE"
+        ]
+      },
+      "IndicativeQuoteRequest": {
+        "required": [
+          "amount",
+          "tokenIn",
+          "tokenInChainId",
+          "tokenOut",
+          "tokenOutChainId",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/TradeType"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "tokenInChainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "tokenOutChainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "tokenIn": {
+            "type": "string"
+          },
+          "tokenOut": {
+            "type": "string"
+          }
+        }
+      },
+      "IndicativeQuoteResponse": {
+        "required": [
+          "input",
+          "output",
+          "requestId",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "input": {
+            "$ref": "#/components/schemas/IndicativeQuoteToken"
+          },
+          "output": {
+            "$ref": "#/components/schemas/IndicativeQuoteToken"
+          },
+          "type": {
+            "$ref": "#/components/schemas/TradeType"
+          }
+        }
+      },
+      "CreateLPPositionRequest": {
+        "type": "object",
+        "properties": {
+          "positionConfig": {
+            "$ref": "#/components/schemas/PositionConfig"
+          },
+          "walletAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "amount0": {
+            "type": "string"
+          },
+          "amount1": {
+            "type": "string"
+          },
+          "amount0Max": {
+            "type": "string"
+          },
+          "amount1Max": {
+            "type": "string"
+          },
+          "initialPrice": {
+            "type": "string"
+          },
+          "signedBatchedPermit2Data": {
+            "type": "string"
+          },
+          "includeGasInfo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateLPPositionResponse": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "create": {
+            "$ref": "#/components/schemas/TransactionRequest"
+          },
+          "gasFee": {
+            "type": "string"
+          }
+        }
+      },
+      "IncreaseLPPositionRequest": {
+        "type": "object",
+        "properties": {
+          "positionConfigId": {
+            "type": "string"
+          },
+          "walletAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "amount0": {
+            "type": "string"
+          },
+          "amount1": {
+            "type": "string"
+          },
+          "amount0Max": {
+            "type": "string"
+          },
+          "amount1Max": {
+            "type": "string"
+          },
+          "includeGasInfo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "IncreaseLPPositionResponse": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "increase": {
+            "$ref": "#/components/schemas/TransactionRequest"
+          },
+          "gasFee": {
+            "type": "string"
+          }
+        }
+      },
+      "ReduceLPPositionRequest": {
+        "type": "object",
+        "properties": {
+          "positionConfigId": {
+            "type": "string"
+          },
+          "walletAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "amount0": {
+            "type": "string"
+          },
+          "amount1": {
+            "type": "string"
+          },
+          "amount0Max": {
+            "type": "string"
+          },
+          "amount1Max": {
+            "type": "string"
+          },
+          "collectAsWeth": {
+            "type": "boolean"
+          },
+          "includeGasInfo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReduceLPPositionResponse": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "reduce": {
+            "$ref": "#/components/schemas/TransactionRequest"
+          },
+          "gasFee": {
+            "type": "string"
+          }
+        }
+      },
+      "ClaimLPFeesRequest": {
+        "type": "object",
+        "properties": {
+          "positionConfigId": {
+            "type": "string"
+          },
+          "walletAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "collectAsWeth": {
+            "type": "boolean"
+          },
+          "includeGasInfo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ClaimLPFeesResponse": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "claim": {
+            "$ref": "#/components/schemas/TransactionRequest"
+          },
+          "gasFee": {
+            "type": "string"
+          }
+        }
+      },
+      "IndicativeQuoteToken": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "token": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "GetSwapsResponse_swaps": {
+        "type": "object",
+        "properties": {
+          "swapType": {
+            "$ref": "#/components/schemas/Routing"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SwapStatus"
+          }
+        }
+      },
+      "GetSwappableTokensResponse_tokens": {
+        "required": [
+          "address",
+          "chainId",
+          "decimals",
+          "name",
+          "project",
+          "symbol"
+        ],
+        "type": "object",
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "chainId": {
+            "$ref": "#/components/schemas/ChainId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "project": {
+            "$ref": "#/components/schemas/TokenProject"
+          },
+          "isSpam": {
+            "type": "boolean"
+          },
+          "decimals": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "responses": {
+      "OrdersSuccess200": {
+        "description": "The request orders matching the query parameters.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GetOrdersResponse"
+            }
+          }
+        }
+      },
+      "OrderSuccess201": {
+        "description": "Encoded order submitted.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/OrderResponse"
+            }
+          }
+        }
+      },
+      "QuoteSuccess200": {
+        "description": "Quote request successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/QuoteResponse"
+            }
+          }
+        }
+      },
+      "LimitOrderQuoteSuccess200": {
+        "description": "Limit Order Quote request successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LimitOrderQuoteResponse"
+            }
+          }
+        }
+      },
+      "CheckApprovalLPSuccess200": {
+        "description": "Approve LP successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CheckApprovalLPResponse"
+            }
+          }
+        }
+      },
+      "ApprovalSuccess200": {
+        "description": "Check approval successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApprovalResponse"
+            }
+          }
+        }
+      },
+      "CreateSendSuccess200": {
+        "description": "Create send successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateSendResponse"
+            }
+          }
+        }
+      },
+      "CreateSwapSuccess200": {
+        "description": "Create swap successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateSwapResponse"
+            }
+          }
+        }
+      },
+      "GetSwapsSuccess200": {
+        "description": "Get swap successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GetSwapsResponse"
+            }
+          }
+        }
+      },
+      "GetSwappableTokensSuccess200": {
+        "description": "Get swappable tokens successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GetSwappableTokensResponse"
+            }
+          }
+        }
+      },
+      "CreateLPPositionSuccess200": {
+        "description": "Create LP Position successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreateLPPositionResponse"
+            }
+          }
+        }
+      },
+      "IncreaseLPPositionSuccess200": {
+        "description": "Create LP Position successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/IncreaseLPPositionResponse"
+            }
+          }
+        }
+      },
+      "ReduceLPPositionSuccess200": {
+        "description": "Reduce LP Position successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ReduceLPPositionResponse"
+            }
+          }
+        }
+      },
+      "ClaimLPFeesSuccess200": {
+        "description": "Claim LP Fees successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ClaimLPFeesResponse"
+            }
+          }
+        }
+      },
+      "BadRequest400": {
+        "description": "RequestValidationError, Bad Input",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err400"
+            }
+          }
+        }
+      },
+      "ApprovalUnauthorized401": {
+        "description": "UnauthorizedError eg. Account is blocked.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err401"
+            }
+          }
+        }
+      },
+      "ApprovalNotFound404": {
+        "description": "ResourceNotFound eg. Token allowance not found or Gas info not found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err404"
+            }
+          }
+        }
+      },
+      "Unauthorized401": {
+        "description": "UnauthorizedError eg. Account is blocked.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err401"
+            }
+          }
+        }
+      },
+      "QuoteNotFound404": {
+        "description": "ResourceNotFound eg. No quotes available or Gas fee/price not available",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err404"
+            }
+          }
+        }
+      },
+      "SendNotFound404": {
+        "description": "ResourceNotFound eg. Gas fee not available",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err404"
+            }
+          }
+        }
+      },
+      "SwapBadRequest400": {
+        "description": "RequestValidationError, Bad Input",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err400"
+            }
+          }
+        }
+      },
+      "SwapUnauthorized401": {
+        "description": "UnauthorizedError eg. Account is blocked or  Fee is not enabled.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err401"
+            }
+          }
+        }
+      },
+      "SwapNotFound404": {
+        "description": "ResourceNotFound eg. No quotes available or Gas fee/price not available",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err404"
+            }
+          }
+        }
+      },
+      "OrdersNotFound404": {
+        "description": "Orders not found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err404"
+            }
+          }
+        }
+      },
+      "LPNotFound404": {
+        "description": "ResourceNotFound eg. Cant Find LP Position.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err404"
+            }
+          }
+        }
+      },
+      "OrdersBadRequest400": {
+        "description": "RequestValidationError eg. Token allowance not valid or Insufficient Funds.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err400"
+            }
+          }
+        }
+      },
+      "RateLimitedErr429": {
+        "description": "Ratelimited",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err429"
+            }
+          }
+        }
+      },
+      "InternalErr500": {
+        "description": "Unexpected error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err500"
+            }
+          }
+        }
+      },
+      "Timeout504": {
+        "description": "Request duration limit reached.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Err504"
+            }
+          }
+        }
+      },
+      "IndicativeQuoteSuccess200": {
+        "description": "Indicative quote request successful.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/IndicativeQuoteResponse"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "universalRouterVersionHeader": {
+        "name": "x-universal-router-version",
+        "in": "header",
+        "description": "The version of the Universal Router to use for the swap journey. *MUST* be consistent throughout the API calls.",
+        "required": false,
+        "style": "simple",
+        "explode": false,
+        "schema": {
+          "$ref": "#/components/schemas/UniversalRouterVersion"
+        }
+      },
+      "addressParam": {
+        "name": "address",
+        "in": "path",
+        "required": true,
+        "style": "simple",
+        "explode": false,
+        "schema": {
+          "$ref": "#/components/schemas/Address"
+        }
+      },
+      "tokenIdParam": {
+        "name": "tokenId",
+        "in": "path",
+        "required": true,
+        "style": "simple",
+        "explode": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "cursorParam": {
+        "name": "cursor",
+        "in": "query",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "limitParam": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "type": "number"
+        }
+      },
+      "chainIdParam": {
+        "name": "chainId",
+        "in": "query",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/ChainId"
+        }
+      },
+      "bridgeTokenInChainIdParam": {
+        "name": "tokenInChainId",
+        "in": "query",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/ChainId"
+        }
+      },
+      "bridgeTokenOutChainIdParam": {
+        "name": "tokenOutChainId",
+        "in": "query",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/ChainId"
+        }
+      },
+      "tokenInParam": {
+        "name": "tokenIn",
+        "in": "query",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/Address"
+        }
+      },
+      "tokenOutParam": {
+        "name": "tokenOut",
+        "in": "query",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/Address"
+        }
+      },
+      "addressPathParam": {
+        "name": "address",
+        "in": "query",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/Address"
+        }
+      },
+      "orderStatusParam": {
+        "name": "orderStatus",
+        "in": "query",
+        "description": "Filter by order status.",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/OrderStatus"
+        }
+      },
+      "orderTypeParam": {
+        "name": "orderType",
+        "in": "query",
+        "description": "The default orderType is Dutch_V1_V2 and will grab both Dutch and Dutch_V2 orders.",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/OrderTypeQuery"
+        }
+      },
+      "orderIdParam": {
+        "name": "orderId",
+        "in": "query",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/OrderId"
+        }
+      },
+      "orderIdsParam": {
+        "name": "orderIds",
+        "in": "query",
+        "description": "ids split by commas",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/OrderIds"
+        }
+      },
+      "swapperParam": {
+        "name": "swapper",
+        "in": "query",
+        "description": "Filter by swapper address.",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/Address"
+        }
+      },
+      "fillerParam": {
+        "name": "filler",
+        "in": "query",
+        "description": "Filter by filler address.",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/Address"
+        }
+      },
+      "sortKeyParam": {
+        "name": "sortKey",
+        "in": "query",
+        "description": "Order the query results by the sort key.",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/SortKey"
+        }
+      },
+      "sortParam": {
+        "name": "sort",
+        "in": "query",
+        "description": "Sort query. For example: `sort=gt(UNIX_TIMESTAMP)`, `sort=between(1675872827, 1675872930)`, or `lt(1675872930)`.",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "descParam": {
+        "name": "desc",
+        "in": "query",
+        "description": "Sort query results by sortKey in descending order.",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "transactionHashParam": {
+        "name": "txHash",
+        "in": "query",
+        "description": "The transaction hash.",
+        "required": true,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "$ref": "#/components/schemas/TransactionHash"
+        }
+      }
+    },
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "name": "x-api-key",
+        "in": "header"
+      }
+    }
+  }
+}
